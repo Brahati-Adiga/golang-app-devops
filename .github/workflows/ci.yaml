@@ -7,6 +7,7 @@ on:
     paths-ignore:
         - 'README.md'
         - 'helm/**'
+        - '/k8s/**'
 
 jobs:
     build:
@@ -54,7 +55,7 @@ jobs:
         - name: Run golangci-lint
           uses: golangci/golangci-lint-action@v6
           with:
-            version: v1.60.0
+            version: v1.56.2
     
     push:
       runs-on: ubuntu-latest
@@ -87,9 +88,7 @@ jobs:
 
         - name: Update Helm chart with new tag
           run: |
-            helm package ./helm/my-go-app
-            helm repo index ./helm --url https://my-helm-repo-url.com
-            sed -i "s/tag: .*/tag: ${{ secrets.DOCKERHUB_USERNAME }}\/my-go-app:${{ github.run_id }}/" ./helm/my-go-app/values.yaml
+            sed -i 's/tag: .*/tag: "${{ github.run_id }}"/' /helm/go-web-app-chart/values.yaml
         
         - name: Commit and push changes
           run: |
