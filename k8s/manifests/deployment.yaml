@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-web-app
+  labels:
+    app: go-web-app
+spec:
+  replicas: 1   # This indicates 1 pod will be created
+  selector:
+    matchLabels:
+      app: go-web-app
+  template:
+    metadata:
+      labels:
+        app: go-web-app
+    spec:
+      containers:
+      - name: go-web-app
+        image: brahati/go-web-app:v1
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 8080

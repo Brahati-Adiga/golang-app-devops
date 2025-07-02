@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: go-web-app-ingress
+  labels:
+    name: go-web-app
+  annotations: 
+      nginx.ingress.kubernetes.io/rewrite-target: /
+      # This annotation is used to rewrite the URL path to the root of the service.
+      # It ensures that requests to / will be directed to the root of the Go web app.
+spec:
+  ingressClassName: nginx
+  # The ingressClassName should match the class used by your NGINX Ingress Controller
+  # If you are using a different Ingress Controller, adjust accordingly.
+  # For example, if you are using Traefik, you might need to change the ingressClassName.
+  rules:
+  - host: go-web-app.127.0.0.1.nip.io
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: go-web-app-service
+            port: 
+              number: 80
