@@ -43,13 +43,7 @@ jobs:
 
             - name: Build Docker image
               run: docker build -t my-go-app:latest .
-              
-            - name: Upload Docker image
-              uses: docker/build-push-action@v4
-              with:
-                context: .
-                push: true
-                tags: my-go-app:latest
+            
     
     code-quality:
       runs-on: ubuntu-latest
