@@ -1,0 +1,105 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+        - 'README.md'
+        - 'helm/**'
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout source code
+              uses: actions/checkout@v4
+      
+            - name: Set up CI for go app
+              uses: actions/setup-go@v5
+              with:
+                go-version: '1.23'
+
+            - name: Install dependencies
+              run: go mod download
+
+            - name: Test with go
+              run: go test -json > TestResults.json
+
+            - name: Upload go test results
+              uses: actions/upload-artifact@v4
+              with:
+                name: Go-Test-Results
+                path: TestResults.json
+
+            - name: Build go app
+              run: go build -o main .
+
+            - name: Upload go app
+              uses: actions/upload-artifact@v4
+              with:
+                name: Go-App
+                path: main
+
+            - name: Build Docker image
+              run: docker build -t my-go-app:latest .
+              
+            - name: Upload Docker image
+              uses: docker/build-push-action@v4
+              with:
+                context: .
+                push: true
+                tags: my-go-app:latest
+    
+    code-quality:
+      runs-on: ubuntu-latest
+      steps: 
+        - name: Checkout source code
+          uses: actions/checkout@v4
+
+        - name: Run golangci-lint
+          uses: golangci/golangci-lint-action@v6
+          with:
+            version: v1.60.0
+    
+    push:
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout source code
+          uses: actions/checkout@v4
+
+        - name: Login to Dockerhub
+          uses: docker/login-action@v3
+          with: 
+            username: ${{ secrets.DOCKERHUB_USERNAME }}
+            password: ${{ secrets.DOCKERHUB_TOKEN}}
+
+        - name: Docker Build & Push to Docker Hub
+          uses: docker/build-push-action@v4
+          with:
+            context: .
+            push: true
+            tags: ${{ secrets.DOCKERHUB_USERNAME }}/my-go-app:${{ github.run_id }}
+
+    update-newtag-in-helm-chart:
+      runs-on: ubuntu-latest
+      needs: push
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v4
+          with:
+            token: ${{ secrets.TOKEN }}
+
+        - name: Update Helm chart with new tag
+          run: |
+            helm package ./helm/my-go-app
+            helm repo index ./helm --url https://my-helm-repo-url.com
+            sed -i "s/tag: .*/tag: ${{ secrets.DOCKERHUB_USERNAME }}\/my-go-app:${{ github.run_id }}/" ./helm/my-go-app/values.yaml
+        
+        - name: Commit and push changes
+          run: |
+            git config --global user.name "Brahati Adiga"
+            git config --global user.email "brahati2002@gmail.com"
+            git add .
+            git commit -m "Update tag in helm chart"
+            git push
