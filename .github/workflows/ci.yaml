@@ -48,14 +48,15 @@ jobs:
     
     code-quality:
       runs-on: ubuntu-latest
-      steps: 
-        - name: Checkout source code
-          uses: actions/checkout@v4
 
-        - name: Run golangci-lint
-          uses: golangci/golangci-lint-action@v6
-          with:
-            version: v1.56.2
+      steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.56.2
     
     push:
       runs-on: ubuntu-latest
@@ -88,8 +89,8 @@ jobs:
 
         - name: Update Helm chart with new tag
           run: |
-            sed -i 's/tag: .*/tag: "${{ github.run_id }}"/' /helm/go-web-app-chart/ci.yaml
-        
+            sed -i 's/tag: .*/tag: "${{ github.run_id }}"/' \helm\go-web-app-chart\values.yaml
+
         - name: Commit and push changes
           run: |
             git config --global user.name "Brahati Adiga"
