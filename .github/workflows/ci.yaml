@@ -43,7 +43,7 @@ jobs:
                 path: main
 
             - name: Build Docker image
-              run: docker build -t my-go-app:latest .
+              run: docker build -t go-web-app:latest .
             
     
     code-quality:
@@ -81,7 +81,7 @@ jobs:
           with:
             context: .
             push: true
-            tags: ${{ secrets.DOCKERHUB_USERNAME }}/my-go-app:${{ github.run_id }}
+            tags: ${{ secrets.DOCKERHUB_USERNAME }}/go-web-app:${{ github.run_id }}
 
     update-newtag-in-helm-chart:
       runs-on: ubuntu-latest
